@@ -32,5 +32,42 @@ fn part1(input: String) -> TaskResult {
 }
 
 fn part2(input: String) -> TaskResult {
-    todo!("{input}")
+    let mut dial = 50;
+    let mut clicks = 0;
+
+    for (rl, n) in input.lines().map(|l| {
+        let rl = l.chars().next().unwrap();
+
+        let n: u32 = l[1..].parse().unwrap();
+
+        (rl, n)
+    }) {
+        match rl {
+            'R' => {
+                for _ in 0..n {
+                    if dial == 99 {
+                        dial = 0;
+                        clicks += 1;
+                    } else {
+                        dial += 1;
+                    }
+                }
+            }
+            'L' => {
+                for _ in 0..n {
+                    if dial == 1 {
+                        clicks += 1;
+                        dial = 0;
+                    } else if dial == 0 {
+                        dial = 99;
+                    } else {
+                        dial -= 1;
+                    }
+                }
+            }
+            _ => panic!(),
+        }
+    }
+
+    clicks.into()
 }
