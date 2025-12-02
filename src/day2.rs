@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use crate::{Day, TaskResult};
 
 pub const PARTS: Day = [part1, part2];
@@ -28,12 +30,12 @@ fn part1(input: String) -> TaskResult {
         .lines()
         .next()
         .unwrap()
-        .split(',')
+        .par_split(',')
         .flat_map(|r| {
             let (a, b) = r.split_once('-').unwrap();
 
-            let a = a.parse().unwrap();
-            let b = b.parse().unwrap();
+            let a: u64 = a.parse().unwrap();
+            let b: u64 = b.parse().unwrap();
 
             a..=b
         })
@@ -52,7 +54,7 @@ fn is_invalid2(mut n: u64) -> bool {
     }
 
     for c in 1..=digits.len() / 2 {
-        if digits.len() % c == 0 {
+        if digits.len().is_multiple_of(c) {
             let mut chunks = digits.chunks_exact(c);
 
             let first_chunk = chunks.next().unwrap();
@@ -71,12 +73,12 @@ fn part2(input: String) -> TaskResult {
         .lines()
         .next()
         .unwrap()
-        .split(',')
+        .par_split(',')
         .flat_map(|r| {
             let (a, b) = r.split_once('-').unwrap();
 
-            let a = a.parse().unwrap();
-            let b = b.parse().unwrap();
+            let a: u64 = a.parse().unwrap();
+            let b: u64 = b.parse().unwrap();
 
             a..=b
         })
