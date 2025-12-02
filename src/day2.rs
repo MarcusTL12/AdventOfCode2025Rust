@@ -45,8 +45,8 @@ fn part1(input: String) -> TaskResult {
     ans.into()
 }
 
-fn is_invalid2(mut n: u64) -> bool {
-    let mut digits = Vec::new();
+fn is_invalid2(digits: &mut Vec<u8>, mut n: u64) -> bool {
+    digits.clear();
 
     while n != 0 {
         digits.push((n % 10) as u8);
@@ -82,7 +82,9 @@ fn part2(input: String) -> TaskResult {
 
             a..=b
         })
-        .filter(|&x| is_invalid2(x))
+        .map_init(Vec::new, |v, x| (is_invalid2(v, x), x))
+        .filter(|&(x, _)| x)
+        .map(|(_, x)| x)
         .sum();
 
     ans.into()
