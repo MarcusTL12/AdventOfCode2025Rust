@@ -43,6 +43,45 @@ fn part1(input: String) -> TaskResult {
     ans.into()
 }
 
+fn is_invalid2(mut n: u64) -> bool {
+    let mut digits = Vec::new();
+
+    while n != 0 {
+        digits.push((n % 10) as u8);
+        n /= 10;
+    }
+
+    for c in 1..=digits.len() / 2 {
+        if digits.len() % c == 0 {
+            let mut chunks = digits.chunks_exact(c);
+
+            let first_chunk = chunks.next().unwrap();
+
+            if chunks.all(|x| x == first_chunk) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
 fn part2(input: String) -> TaskResult {
-    todo!("{input}")
+    let ans: u64 = input
+        .lines()
+        .next()
+        .unwrap()
+        .split(',')
+        .flat_map(|r| {
+            let (a, b) = r.split_once('-').unwrap();
+
+            let a = a.parse().unwrap();
+            let b = b.parse().unwrap();
+
+            a..=b
+        })
+        .filter(|&x| is_invalid2(x))
+        .sum();
+
+    ans.into()
 }
