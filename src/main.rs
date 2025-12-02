@@ -17,7 +17,7 @@ mod day1;
 // mod day17;
 // mod day18;
 // mod day19;
-// mod day2;
+mod day2;
 // mod day20;
 // mod day21;
 // mod day22;
@@ -69,7 +69,7 @@ type Day = [fn(String) -> TaskResult; 2];
 
 const DAYS: &[Day] = &[
     day1::PARTS,
-    // day2::PARTS,
+    day2::PARTS,
     // day3::PARTS,
     // day4::PARTS,
     // day5::PARTS,
