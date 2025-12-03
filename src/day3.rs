@@ -8,7 +8,7 @@ fn find_highest_joltage(batteries: &[u8]) -> u8 {
     let mut a = batteries[0];
     let mut b = batteries[1];
 
-    for i in 2..batteries.len() - 1 {
+    for i in 1..batteries.len() - 1 {
         if batteries[i] > a {
             a = batteries[i];
             b = batteries[i + 1];
@@ -22,8 +22,6 @@ fn find_highest_joltage(batteries: &[u8]) -> u8 {
     {
         b = x;
     }
-
-    println!("ab: {}{}", a as char, b as char);
 
     10 * (a - b'0') + (b - b'0')
 }
