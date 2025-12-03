@@ -55,7 +55,7 @@ fn find_first_max(data: &[u8]) -> Option<(usize, u8)> {
     Some((i, x))
 }
 
-const LANES: usize = 64;
+const LANES: usize = 8;
 
 fn find_vector_with_max(body: &[Simd<u8, LANES>]) -> Option<(usize, u8)> {
     if body.is_empty() {
