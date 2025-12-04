@@ -1,3 +1,5 @@
+use arrayvec::ArrayVec;
+
 use crate::{
     Day, TaskResult,
     util::{input_to_grid, input_to_grid_mut},
@@ -32,43 +34,38 @@ fn part1(input: String) -> TaskResult {
 fn part2(mut input: String) -> TaskResult {
     let mut grid = input_to_grid_mut(unsafe { input.as_bytes_mut() });
 
-    let (h, w) = grid.dim();
-
-    let mut done = false;
+    let mut stack: Vec<_> = grid
+        .indexed_iter()
+        .filter_map(|((i, j), &x)| (x == b'@').then_some([i, j]))
+        .collect();
 
     let mut ans = 0;
 
-    while !done {
-        done = true;
+    while let Some([i, j]) = stack.pop() {
+        if grid[[i, j]] == b'@' {
+            let mut neighbours = ArrayVec::<_, 3>::new();
+            let mut can_remove = true;
 
-        for i in 0..h {
-            for j in 0..w {
-                if grid[[i, j]] == b'@' {
-                    let mut c = 0;
+            'count_loop: for di in -1..=1 {
+                let ni = (i as isize + di) as usize;
+                for dj in -1..=1 {
+                    let nj = (j as isize + dj) as usize;
 
-                    'count_loop: for di in -1..=1 {
-                        let i = (i as isize + di) as usize;
-                        for dj in -1..=1 {
-                            let j = (j as isize + dj) as usize;
-
-                            if let Some(&x) = grid.get([i, j])
-                                && x == b'@'
-                            {
-                                c += 1;
-
-                                if c >= 5 {
-                                    break 'count_loop;
-                                }
-                            }
-                        }
-                    }
-
-                    if c < 5 {
-                        grid[[i, j]] = b'.';
-                        ans += 1;
-                        done = false;
+                    if [ni, nj] != [i, j]
+                        && let Some(&x) = grid.get([ni, nj])
+                        && x == b'@'
+                        && neighbours.try_push([ni, nj]).is_err()
+                    {
+                        can_remove = false;
+                        break 'count_loop;
                     }
                 }
+            }
+
+            if can_remove {
+                grid[[i, j]] = b'.';
+                ans += 1;
+                stack.extend(neighbours);
             }
         }
     }
