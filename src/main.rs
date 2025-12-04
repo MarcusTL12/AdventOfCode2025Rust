@@ -4,7 +4,7 @@ use std::{env, fmt::Display, fs::read_to_string, time::Instant};
 
 use home::home_dir;
 
-// mod util;
+mod util;
 
 mod day1;
 // mod day10;
@@ -25,7 +25,7 @@ mod day2;
 // mod day24;
 // mod day25;
 mod day3;
-// mod day4;
+mod day4;
 // mod day5;
 // mod day6;
 // mod day7;
@@ -71,7 +71,7 @@ const DAYS: &[Day] = &[
     day1::PARTS,
     day2::PARTS,
     day3::PARTS,
-    // day4::PARTS,
+    day4::PARTS,
     // day5::PARTS,
     // day6::PARTS,
     // day7::PARTS,
