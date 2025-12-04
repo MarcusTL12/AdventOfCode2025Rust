@@ -41,12 +41,11 @@ fn part2(mut input: String) -> TaskResult {
 
     let mut ans = 0;
 
-    while let Some([i, j]) = stack.pop() {
+    'outer: while let Some([i, j]) = stack.pop() {
         if grid[[i, j]] == b'@' {
             let mut neighbours = ArrayVec::<_, 3>::new();
-            let mut can_remove = true;
 
-            'count_loop: for di in -1..=1 {
+            for di in -1..=1 {
                 let ni = (i as isize + di) as usize;
                 for dj in -1..=1 {
                     let nj = (j as isize + dj) as usize;
@@ -56,17 +55,14 @@ fn part2(mut input: String) -> TaskResult {
                         && x == b'@'
                         && neighbours.try_push([ni, nj]).is_err()
                     {
-                        can_remove = false;
-                        break 'count_loop;
+                        continue 'outer;
                     }
                 }
             }
 
-            if can_remove {
-                grid[[i, j]] = b'.';
-                ans += 1;
-                stack.extend(neighbours);
-            }
+            grid[[i, j]] = b'.';
+            ans += 1;
+            stack.extend(neighbours);
         }
     }
 
