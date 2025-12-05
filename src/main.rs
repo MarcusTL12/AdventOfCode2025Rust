@@ -26,7 +26,7 @@ mod day2;
 // mod day25;
 mod day3;
 mod day4;
-// mod day5;
+mod day5;
 // mod day6;
 // mod day7;
 // mod day8;
@@ -72,7 +72,7 @@ const DAYS: &[Day] = &[
     day2::PARTS,
     day3::PARTS,
     day4::PARTS,
-    // day5::PARTS,
+    day5::PARTS,
     // day6::PARTS,
     // day7::PARTS,
     // day8::PARTS,
