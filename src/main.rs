@@ -29,7 +29,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
-// mod day8;
+mod day8;
 // mod day9;
 
 enum TaskResult {
@@ -75,7 +75,7 @@ const DAYS: &[Day] = &[
     day5::PARTS,
     day6::PARTS,
     day7::PARTS,
-    // day8::PARTS,
+    day8::PARTS,
     // day9::PARTS,
     // day10::PARTS,
     // day11::PARTS,
