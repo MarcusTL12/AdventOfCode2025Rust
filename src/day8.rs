@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use arrayvec::ArrayVec;
+use rayon::prelude::*;
 
 use crate::{Day, TaskResult};
 
@@ -48,7 +49,7 @@ fn part1(input: String) -> TaskResult {
         .flat_map(|i| (0..i).map(move |j| [i, j]))
         .collect();
 
-    pairs.sort_unstable_by_key(|&[i, j]| {
+    pairs.par_sort_unstable_by_key(|&[i, j]| {
         coords[i]
             .iter()
             .zip(&coords[j])
@@ -99,7 +100,7 @@ fn part2(input: String) -> TaskResult {
         .flat_map(|i| (0..i).map(move |j| [i, j]))
         .collect();
 
-    pairs.sort_unstable_by_key(|&[i, j]| {
+    pairs.par_sort_unstable_by_key(|&[i, j]| {
         coords[i]
             .iter()
             .zip(&coords[j])
