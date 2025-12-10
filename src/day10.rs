@@ -1,4 +1,7 @@
-use std::{collections::{HashSet, VecDeque}, time::Instant};
+use std::{
+    collections::{HashSet, VecDeque},
+    time::Instant,
+};
 
 use rayon::prelude::*;
 
@@ -112,9 +115,12 @@ fn find_best_solution2(joltages: &[u8], buttons: &[u16]) -> usize {
 }
 
 fn part2(input: String) -> TaskResult {
-    let ans = input
-        .par_lines()
-        .map_with((Vec::new(), Vec::new()), |(joltages, buttons), l| {
+    let lines: Vec<_> = input.lines().collect();
+
+    let ans = lines
+        .par_iter()
+        .enumerate()
+        .map_with((Vec::new(), Vec::new()), |(joltages, buttons), (i, l)| {
             let (_, rest) = l.split_once(' ').unwrap();
 
             let mut parts = rest.split_ascii_whitespace().rev();
@@ -141,7 +147,7 @@ fn part2(input: String) -> TaskResult {
 
             let t = t.elapsed();
 
-            println!("i => {sol} {t:.2?}");
+            println!("{} => {sol} {t:.2?}", i + 1);
 
             sol
         })
