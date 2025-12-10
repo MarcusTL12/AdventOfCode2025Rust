@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashSet, VecDeque},
-    time::Instant,
-};
+use std::{collections::HashMap, time::Instant};
 
 use rayon::prelude::*;
 
@@ -85,33 +82,64 @@ fn add_to_sum(cur_sum: &[u8], mut mask: u16) -> Vec<u8> {
     new_sum
 }
 
-fn find_best_solution2(joltages: &[u8], buttons: &[u16]) -> usize {
+fn find_best_solution2(
+    memo: &mut HashMap<(Vec<u8>, Option<usize>), Option<usize>>,
+    limit: Option<usize>,
+    joltages: &[u8],
+    buttons: &[u16],
+    cur_sum: &[u8],
+) -> Option<usize> {
+    if let Some(&x) = memo.get(&(cur_sum.to_owned(), limit)) {
+        return x;
+    }
+
     let n = joltages.len();
+    assert_eq!(cur_sum.len(), n);
 
-    let mut queue = VecDeque::new();
-    queue.push_back((0, vec![0; n]));
-    let mut seen = HashSet::new();
+    let mut best = None;
 
-    while let Some((num_presses, sum)) = queue.pop_front() {
-        for &b in buttons {
-            let new_sum = add_to_sum(&sum, b);
+    for &b in buttons {
+        let new_sum = add_to_sum(cur_sum, b);
 
+        let candidate =
             if new_sum.iter().zip(joltages.iter()).any(|(a, b)| a > b) {
                 continue;
             } else if new_sum == joltages {
-                return num_presses + 1;
+                Some(1)
+            } else {
+                find_best_solution2(
+                    memo,
+                    best.map(|x| x - 1),
+                    joltages,
+                    buttons,
+                    &new_sum,
+                )
+                .map(|x| x + 1)
+            };
+
+        if let Some(x) = best
+            && let Some(y) = candidate
+            && y < x
+        {
+            best = candidate;
+
+            if y == 1 {
+                break;
             }
+        } else if best.is_none()
+            && let Some(y) = candidate
+        {
+            best = candidate;
 
-            let k = (num_presses + 1, new_sum);
-
-            if !seen.contains(&k) {
-                queue.push_back(k.clone());
-                seen.insert(k);
+            if y == 1 {
+                break;
             }
         }
     }
 
-    panic!()
+    memo.insert((cur_sum.to_owned(), limit), best);
+
+    best
 }
 
 fn part2(input: String) -> TaskResult {
@@ -143,7 +171,13 @@ fn part2(input: String) -> TaskResult {
 
             let t = Instant::now();
 
-            let sol = find_best_solution2(joltages, buttons);
+            let mut memo = HashMap::new();
+            let init_sum = vec![0; joltages.len()];
+
+            let sol = find_best_solution2(
+                &mut memo, None, joltages, buttons, &init_sum,
+            )
+            .unwrap();
 
             let t = t.elapsed();
 
