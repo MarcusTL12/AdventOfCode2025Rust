@@ -1,6 +1,6 @@
-use std::{collections::HashMap, time::Instant};
-
 use rayon::prelude::*;
+
+use z3::{Optimize, ast::Int};
 
 use crate::{Day, TaskResult};
 
@@ -65,127 +65,60 @@ fn part1(input: String) -> TaskResult {
         .into()
 }
 
-fn add_to_sum(cur_sum: &[u8], mut mask: u16) -> Vec<u8> {
-    let mut new_sum = cur_sum.to_owned();
-
-    let mut i = 0;
-
-    while mask != 0 {
-        if mask & 1 == 1 {
-            new_sum[i] += 1;
-        }
-
-        mask >>= 1;
-        i += 1;
-    }
-
-    new_sum
-}
-
-fn find_best_solution2(
-    memo: &mut HashMap<(Vec<u8>, Option<usize>), Option<usize>>,
-    limit: Option<usize>,
-    joltages: &[u8],
-    buttons: &[u16],
-    cur_sum: &[u8],
-) -> Option<usize> {
-    if let Some(&x) = memo.get(&(cur_sum.to_owned(), limit)) {
-        return x;
-    }
-
-    let n = joltages.len();
-    assert_eq!(cur_sum.len(), n);
-
-    let mut best = None;
-
-    for &b in buttons {
-        let new_sum = add_to_sum(cur_sum, b);
-
-        let candidate =
-            if new_sum.iter().zip(joltages.iter()).any(|(a, b)| a > b) {
-                continue;
-            } else if new_sum == joltages {
-                Some(1)
-            } else {
-                find_best_solution2(
-                    memo,
-                    best.map(|x| x - 1),
-                    joltages,
-                    buttons,
-                    &new_sum,
-                )
-                .map(|x| x + 1)
-            };
-
-        if let Some(x) = best
-            && let Some(y) = candidate
-            && y < x
-        {
-            best = candidate;
-
-            if y == 1 {
-                break;
-            }
-        } else if best.is_none()
-            && let Some(y) = candidate
-        {
-            best = candidate;
-
-            if y == 1 {
-                break;
-            }
-        }
-    }
-
-    memo.insert((cur_sum.to_owned(), limit), best);
-
-    best
-}
-
 fn part2(input: String) -> TaskResult {
-    let lines: Vec<_> = input.lines().collect();
+    input
+        .par_lines()
+        .map(|l| {
+            let s = Int::new_const("s");
 
-    let ans = lines
-        .par_iter()
-        .enumerate()
-        .map_with((Vec::new(), Vec::new()), |(joltages, buttons), (i, l)| {
             let (_, rest) = l.split_once(' ').unwrap();
 
             let mut parts = rest.split_ascii_whitespace().rev();
 
             let j = parts.next().unwrap();
-            joltages.clear();
-            joltages.extend(
-                j[1..j.len() - 1]
-                    .split(',')
-                    .map(|x| x.parse::<u8>().unwrap()),
-            );
+            let joltages: Vec<_> = j[1..j.len() - 1]
+                .split(',')
+                .map(|x| x.parse::<u8>().unwrap())
+                .collect();
 
-            buttons.clear();
-            buttons.extend(parts.rev().map(|s| {
+            let mut w = vec![Int::from_u64(0); joltages.len()];
+
+            let mut sv = Int::from_u64(0);
+
+            let o = Optimize::new();
+
+            for x in parts.rev().map(|s| {
                 s[1..s.len() - 1]
                     .split(',')
-                    .map(|x| x.parse().unwrap())
-                    .fold(0u16, |mask, i: u8| mask | (1 << i))
-            }));
+                    .map(|x| x.parse::<usize>().unwrap())
+            }) {
+                let v = Int::fresh_const("v");
 
-            let t = Instant::now();
+                for i in x {
+                    w[i] += &v;
+                }
 
-            let mut memo = HashMap::new();
-            let init_sum = vec![0; joltages.len()];
+                o.assert(&v.ge(0));
 
-            let sol = find_best_solution2(
-                &mut memo, None, joltages, buttons, &init_sum,
-            )
-            .unwrap();
+                sv += v;
+            }
 
-            let t = t.elapsed();
+            for (w, j) in w.into_iter().zip(joltages) {
+                o.assert(&w.eq(j));
+            }
 
-            println!("{} => {sol} {t:.2?}", i + 1);
+            o.assert(&s.eq(sv));
 
-            sol
+            o.minimize(&s);
+            o.check(&[]);
+
+            o.get_model()
+                .unwrap()
+                .eval(&s, true)
+                .unwrap()
+                .as_u64()
+                .unwrap()
         })
-        .sum::<usize>();
-
-    ans.into()
+        .sum::<u64>()
+        .into()
 }
