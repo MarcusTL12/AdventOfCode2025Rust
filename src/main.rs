@@ -7,7 +7,7 @@ use home::home_dir;
 mod util;
 
 mod day1;
-// mod day10;
+mod day10;
 // mod day11;
 // mod day12;
 // mod day13;
@@ -77,7 +77,7 @@ const DAYS: &[Day] = &[
     day7::PARTS,
     day8::PARTS,
     day9::PARTS,
-    // day10::PARTS,
+    day10::PARTS,
     // day11::PARTS,
     // day12::PARTS,
     // day13::PARTS,
