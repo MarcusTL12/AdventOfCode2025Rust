@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::{collections::{HashSet, VecDeque}, time::Instant};
 
 use rayon::prelude::*;
 
@@ -135,7 +135,15 @@ fn part2(input: String) -> TaskResult {
                     .fold(0u16, |mask, i: u8| mask | (1 << i))
             }));
 
-            find_best_solution2(joltages, buttons)
+            let t = Instant::now();
+
+            let sol = find_best_solution2(joltages, buttons);
+
+            let t = t.elapsed();
+
+            println!("i => {sol} {t:.2?}");
+
+            sol
         })
         .sum::<usize>();
 
