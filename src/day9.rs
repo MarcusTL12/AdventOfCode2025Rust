@@ -106,7 +106,6 @@ fn part2(input: String) -> TaskResult {
         (down_walls, up_walls)
     };
 
-    // TODO: make this faster
     for (x, [y0, y1]) in in_walls {
         for y in y0..=y1 {
             let x_end = out_walls
@@ -122,24 +121,28 @@ fn part2(input: String) -> TaskResult {
         }
     }
 
-    red_tiles
-        .par_iter()
+    let mut red_pairs: Vec<_> = red_tiles
+        .iter()
         .cloned()
         .enumerate()
         .flat_map(|(i, [x1, y1])| {
-            red_tiles
-                .par_iter()
-                .cloned()
-                .take(i)
-                .map(move |[x2, y2]| {
-                    [[x1.min(x2), x1.max(x2)], [y1.min(y2), y1.max(y2)]]
-                })
-                .filter(|&[[x0, x1], [y0, y1]]| {
-                    is_all_on(&grid, w, x0, x1, y0, y1)
-                })
-                .map(move |[[x0, x1], [y0, y1]]| (x1 - x0 + 1) * (y1 - y0 + 1))
+            red_tiles.iter().cloned().take(i).map(move |[x2, y2]| {
+                [[x1.min(x2), x1.max(x2)], [y1.min(y2), y1.max(y2)]]
+            })
         })
-        .max()
+        .collect();
+
+    red_pairs.par_sort_unstable_by_key(|&[[x0, x1], [y0, y1]]| {
+        (x1 - x0 + 1) * (y1 - y0 + 1)
+    });
+
+    red_pairs
+        .into_par_iter()
+        .rev()
+        .find_map_first(|[[x0, x1], [y0, y1]]| {
+            is_all_on(&grid, w, x0, x1, y0, y1)
+                .then_some((x1 - x0 + 1) * (y1 - y0 + 1))
+        })
         .unwrap()
         .into()
 }
