@@ -1,10 +1,65 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, mem};
+
+use arrayvec::ArrayVec;
 
 use crate::{Day, TaskResult};
 
 pub const PARTS: Day = [part1, part2];
 
-fn parse_input(input: &str) -> (Vec<Vec<usize>>, HashMap<&str, usize>) {
+#[derive(Debug, Clone)]
+enum HybVec<T, const N: usize> {
+    Short(ArrayVec<T, N>),
+    Long(Vec<T>),
+}
+
+impl<T, const N: usize> HybVec<T, N> {
+    const fn new() -> Self {
+        Self::Short(ArrayVec::new_const())
+    }
+
+    fn push(&mut self, v: T) {
+        match self {
+            Self::Short(s) => {
+                if let Err(v) = s.try_push(v) {
+                    let v = v.element();
+
+                    let Self::Short(old_self) =
+                        mem::replace(self, Self::Long(Vec::new()))
+                    else {
+                        unreachable!()
+                    };
+
+                    let Self::Long(new_vec) = self else {
+                        unreachable!()
+                    };
+
+                    new_vec.extend(old_self);
+                    new_vec.push(v);
+                }
+            }
+            Self::Long(s) => s.push(v),
+        }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &T> {
+        match self {
+            Self::Short(s) => s.iter(),
+            Self::Long(s) => s.iter(),
+        }
+    }
+}
+
+impl<T, const N: usize> Extend<T> for HybVec<T, N> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        for v in iter {
+            self.push(v);
+        }
+    }
+}
+
+fn parse_input<const N: usize>(
+    input: &str,
+) -> (Vec<HybVec<usize, N>>, HashMap<&str, usize>) {
     let mut translation = HashMap::new();
 
     fn translate<'a>(
@@ -31,7 +86,7 @@ fn parse_input(input: &str) -> (Vec<Vec<usize>>, HashMap<&str, usize>) {
             if let Some(v) = network.get_mut(from) {
                 break v;
             } else {
-                network.push(Vec::new());
+                network.push(HybVec::new());
             }
         }
         .extend(
@@ -43,9 +98,9 @@ fn parse_input(input: &str) -> (Vec<Vec<usize>>, HashMap<&str, usize>) {
     (network, translation)
 }
 
-fn count_paths(
+fn count_paths<const N: usize>(
     memo: &mut [Option<usize>],
-    network: &[Vec<usize>],
+    network: &[HybVec<usize, N>],
     from: usize,
     to: usize,
 ) -> usize {
@@ -68,16 +123,16 @@ fn count_paths(
 }
 
 fn part1(input: String) -> TaskResult {
-    let (network, trans) = parse_input(&input);
+    let (network, trans) = parse_input::<8>(&input);
 
     let mut memo = vec![None; network.len()];
 
     count_paths(&mut memo, &network, trans["you"], trans["out"]).into()
 }
 
-fn count_paths2<const N: usize>(
+fn count_paths2<const N: usize, const M: usize>(
     memo: &mut HashMap<(usize, [bool; N]), usize>,
-    network: &[Vec<usize>],
+    network: &[HybVec<usize, M>],
     mut k: (usize, [bool; N]),
     stops: [usize; N],
     to: usize,
@@ -107,7 +162,7 @@ fn count_paths2<const N: usize>(
 }
 
 fn part2(input: String) -> TaskResult {
-    let (network, trans) = parse_input(&input);
+    let (network, trans) = parse_input::<2>(&input);
 
     let svr = trans["svr"];
     let dac = trans["dac"];
