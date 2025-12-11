@@ -4,7 +4,7 @@ use crate::{Day, TaskResult};
 
 pub const PARTS: Day = [part1, part2];
 
-fn parse_input(input: &str) -> (Vec<Vec<usize>>, usize, usize) {
+fn parse_input(input: &str) -> (Vec<Vec<usize>>, HashMap<&str, usize>) {
     let mut translation = HashMap::new();
 
     fn translate<'a>(
@@ -40,10 +40,7 @@ fn parse_input(input: &str) -> (Vec<Vec<usize>>, usize, usize) {
         );
     }
 
-    let you = translation["you"];
-    let out = translation["out"];
-
-    (network, you, out)
+    (network, translation)
 }
 
 fn count_paths(
@@ -71,13 +68,53 @@ fn count_paths(
 }
 
 fn part1(input: String) -> TaskResult {
-    let (network, you, out) = parse_input(&input);
+    let (network, trans) = parse_input(&input);
 
     let mut memo = vec![None; network.len()];
 
-    count_paths(&mut memo, &network, you, out).into()
+    count_paths(&mut memo, &network, trans["you"], trans["out"]).into()
+}
+
+fn count_paths2<const N: usize>(
+    memo: &mut HashMap<(usize, [bool; N]), usize>,
+    network: &[Vec<usize>],
+    mut k: (usize, [bool; N]),
+    stops: [usize; N],
+    to: usize,
+) -> usize {
+    for (been, i) in k.1.iter_mut().zip(stops) {
+        if k.0 == i {
+            *been = true;
+        }
+    }
+
+    if k.0 == to {
+        return if k.1 == [true; N] { 1 } else { 0 };
+    }
+
+    if let Some(&n) = memo.get(&k) {
+        return n;
+    }
+
+    let n = network[k.0]
+        .iter()
+        .map(|&x| count_paths2(memo, network, (x, k.1), stops, to))
+        .sum();
+
+    memo.insert(k, n);
+
+    n
 }
 
 fn part2(input: String) -> TaskResult {
-    todo!("{input}")
+    let (network, trans) = parse_input(&input);
+
+    let svr = trans["svr"];
+    let dac = trans["dac"];
+    let fft = trans["fft"];
+    let out = trans["out"];
+
+    let mut memo = HashMap::new();
+
+    count_paths2(&mut memo, &network, (svr, [false; 2]), [dac, fft], out).into()
 }
