@@ -5,8 +5,9 @@ edition = "2024"
 
 [dependencies]
 arrayvec = "0.7"
+bitvec = "1"
 home = "0.5"
 ndarray = "0.17"
-rayon = "1.11"
-smallvec = "1.15"
+rayon = "1"
+smallvec = "1"
 z3 = "0.19"
