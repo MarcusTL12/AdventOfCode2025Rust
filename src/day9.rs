@@ -140,8 +140,11 @@ fn part2(input: String) -> TaskResult {
         .into_par_iter()
         .rev()
         .find_map_first(|[[x0, x1], [y0, y1]]| {
-            is_all_on(&grid, w, x0, x1, y0, y1)
-                .then_some((x1 - x0 + 1) * (y1 - y0 + 1))
+            (!red_tiles
+                .iter()
+                .any(|&[x, y]| x0 < x && x < x1 && y0 < y && y < y1)
+                && is_all_on(&grid, w, x0, x1, y0, y1))
+            .then_some((x1 - x0 + 1) * (y1 - y0 + 1))
         })
         .unwrap()
         .into()
