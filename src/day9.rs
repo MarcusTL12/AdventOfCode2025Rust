@@ -29,15 +29,48 @@ fn part1(input: String) -> TaskResult {
         .into()
 }
 
-fn is_all_on(
-    grid: &BitSlice,
-    w: usize,
+fn do_rle(mut bits: &BitSlice) -> Vec<usize> {
+    let mut rle = Vec::new();
+
+    let mut bit_state = false;
+
+    while let Some(n) = if bit_state {
+        bits.first_zero()
+    } else {
+        bits.first_one()
+    } {
+        bit_state = !bit_state;
+        rle.push(n);
+        bits = &bits[n..];
+    }
+
+    rle.push(bits.len());
+
+    rle
+}
+
+fn is_all_on_rle(rle: &[usize], mut x0: usize, mut x1: usize) -> bool {
+    let mut i = 0;
+
+    while let Some(&n) = rle.get(i)
+        && n <= x0
+    {
+        i += 1;
+        x0 -= n;
+        x1 -= n;
+    }
+
+    i % 2 != 0 && rle[i] > x1
+}
+
+fn is_all_on_rle_area(
+    rle: &[Vec<usize>],
     x0: usize,
     x1: usize,
     y0: usize,
     y1: usize,
 ) -> bool {
-    (y0..=y1).all(|y| grid[x0 + y * w..=x1 + y * w].all())
+    (y0..=y1).all(|y| is_all_on_rle(&rle[y], x0, x1))
 }
 
 fn part2(input: String) -> TaskResult {
@@ -121,6 +154,11 @@ fn part2(input: String) -> TaskResult {
         }
     }
 
+    let rle: Vec<_> = (0..h)
+        .into_par_iter()
+        .map(|y| do_rle(&grid[y * w..(y + 1) * w]))
+        .collect();
+
     let mut red_pairs: Vec<_> = red_tiles
         .iter()
         .cloned()
@@ -143,7 +181,7 @@ fn part2(input: String) -> TaskResult {
             (!red_tiles
                 .iter()
                 .any(|&[x, y]| x0 < x && x < x1 && y0 < y && y < y1)
-                && is_all_on(&grid, w, x0, x1, y0, y1))
+                && is_all_on_rle_area(&rle, x0, x1, y0, y1))
             .then_some((x1 - x0 + 1) * (y1 - y0 + 1))
         })
         .unwrap()
